@@ -1,35 +1,49 @@
-#include<stdio.h>
-void main()
-{
-        int total_frames,window_size;
-        int sent=0,lost_frame,i;
-        printf("Enter total number of frames to send: ");
-        scanf("%d",&total_frames);
-        printf("Enter window size: ");
-        scanf("%d",&window_size);
-        printf("\n--- GO-Back-N sliding window protocol simulation---\n\n");
-        while(sent < total_frames)
-        {
-                printf("Sender:sending frames");
-                for(i=sent;i<sent+window_size && i<total_frames;i++)
-                        printf("%d",i);
-                printf("\n");
-                printf("Enter the frame number to be lost (or -1 if none lost): ");
-                scanf("%d",&lost_frame);
-                if(lost_frame>=sent && lost_frame <sent+window_size &&lost_frame<total_frames)
+#include <stdio.h>
 
-                {
-                        printf("Receiver:Frame %d lost! Go back and resend from %d\n\n",lost_frame,lost_frame);
-                        sent=lost_frame;
-                }
-                else
-                {
-                        int ack=sent +window_size;
-                        if(ack>total_frames)
-                                ack=total_frames;
-                        printf("Receiver:Acknowledged up to frame %d\n\n",ack-1);
-                        sent=ack;
-                }
+int main() {
+    int total_frames, window_size;
+    int i = 1, j, ack;
+
+    printf("Enter total number of frames to send: ");
+    scanf("%d", &total_frames);
+
+    printf("Enter window size: ");
+    scanf("%d", &window_size);
+
+    printf("\n--- Go-Back-N ARQ Simulation ---\n");
+
+    while (i <= total_frames) {
+        // Send frames in current window
+        printf("\nSending frames: ");
+        for (j = i; j < i + window_size && j <= total_frames; j++) {
+            printf("%d ", j);
         }
-        printf("All frames sent successfully using GO-BACK-N!\n");
+
+        // Acknowledgment checking
+        for (j = i; j < i + window_size && j <= total_frames; j++) {
+            printf("\nDid you receive ACK for frame %d? (1 = Yes, 0 = No): ", j);
+            scanf("%d", &ack);
+
+            if (ack == 0) {
+                // If error: resend this and all next frames in the window
+                printf("\nError detected at frame %d!", j);
+                printf("\nGo-Back-N: Resending frames %d to %d...\n", j, i + window_size - 1);
+
+                for (int k = j; k < i + window_size && k <= total_frames; k++) {
+                    printf("Resending frame %d...\n", k);
+                    printf("Frame %d received successfully now.\n", k);
+                }
+                break; // After error, go to next window
+            } else {
+                printf("Frame %d acknowledged successfully.\n", j);
+            }
+        }
+
+        // Move window forward
+        i = i + window_size;
+    }
+
+    printf("\nAll frames sent and acknowledged successfully.\n");
+    return 0;
 }
+
